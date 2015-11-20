@@ -35,9 +35,8 @@ void handleEvent(sf::RenderWindow& window)
 	}
 }
 
-void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos,
-	sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Clock &clock, sf::Text &text, sf::Text &text2, 
-	std::stringstream &ss, bool& isoverlap)
+void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus, 
+	bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx)
 {
 	//game timer
 	if (!isoverlap)
@@ -61,19 +60,25 @@ void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition,
 	}
 
 	//roadrunner starts here
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && (pos == 510)) //pos == 510 is to prevent the player from spamming the up arrow key or hold so that roadrunner can stay in the air
-	{
-		while (pos != 110)
-		{
-			rrSprite.setPosition(25, pos);
-			pos -= 0.5;
-		}
-	} 
 
-	else if (pos != 510) //This else if statement resets the roadrunners position in increments of pos += 
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
 	{
-		rrSprite.setPosition(25, pos);
-		pos += 8; //Changing 5 will change how fast the roadrunner falls down after the jump higher values means falls down faster and vice versa
+		jumpStatus = 1;
+	}
+
+	if (jumpStatus == 1 && (rrSprite.getPosition().y <= 510))
+	{
+		rrSprite.move(0, -10);
+	}
+
+	if (rrSprite.getPosition().y == 100)
+	{
+		jumpStatus = 0;
+	}
+
+	if (jumpStatus == 0 && (rrSprite.getPosition().y < 510))
+	{
+		rrSprite.move(0, 10);
 	}
 
 	//boulder movement
@@ -162,6 +167,7 @@ int main()
 	rrTexture.loadFromFile(resourcePath() + "assets/roadrunner.png");
 	sf::Sprite rrSprite(rrTexture);
 	double pos = 510;
+	bool jumpStatus = 0;
 	rrSprite.setPosition(25, pos);
 
 	//floor variables
@@ -201,8 +207,7 @@ int main()
 	while (window.isOpen())
 	{
 		handleEvent(window);
-		update(floor, floorWidth, floorHeightPosition, rrSprite, pos, boulderSprite, 
-			eaten, boulderx, clock, text, text2, ss, isoverlap);
+		update(floor, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2, boulderSprite, eaten, boulderx);
 		draw(window, floor, rrSprite, boulderSprite, text, text2, isoverlap);
 	}
 
