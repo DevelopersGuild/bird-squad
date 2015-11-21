@@ -61,7 +61,7 @@ void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition,
 
 	//roadrunner starts here
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y == 510)
 	{
 		jumpStatus = 1;
 	}
