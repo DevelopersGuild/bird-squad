@@ -12,6 +12,9 @@
 #include <SFML/Graphics/Font.hpp>
 #include <string>
 #include <sstream>
+#include <SFML/Audio/Music.hpp>
+#include <SFML/Audio/SoundBuffer.hpp>
+#include <SFML/Audio/Sound.hpp>
 
 using namespace std;
 
@@ -35,8 +38,8 @@ void handleEvent(sf::RenderWindow& window)
 	}
 }
 
-void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus, 
-	bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx)
+void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
+     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music &music, sf::Sound &sound, sf::SoundBuffer &squawk, bool &deathSound)
 {
 	//game timer
 	if (!isoverlap)
@@ -47,43 +50,48 @@ void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition,
 		text2.setString(ss.str().c_str());
 	}
 
-	//flooring
+	//infinite floor/road
 	int position = 15;
 
 	floor[0].move(-position, 0);
 	floor[1].move(-position, 0);
 
+     road[0].move(-position, 0);
+     road[1].move(-position, 0);
+
 	if (floor[0].getPosition().x <= -floorWidth)
 	{
 		floor[0].setPosition(0, floorHeightPosition);
 		floor[1].setPosition(floorWidth, floorHeightPosition);
+
+          road[0].setPosition(0, floorHeightPosition);
+          road[1].setPosition(floorWidth, floorHeightPosition);
 	}
 
-	//roadrunner starts here
-
-     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y == 510)
+	//roadrunner jump
+     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y >= 505)
 	{
 		jumpStatus = 1;
 	}
 
-	if (jumpStatus == 1 && (rrSprite.getPosition().y <= 510))
+	if (jumpStatus == 1 && (rrSprite.getPosition().y <= 505))
 	{
-		rrSprite.move(0, -10);
+		rrSprite.move(0, -15);
 	}
 
-	if (rrSprite.getPosition().y == 100)
+	if (rrSprite.getPosition().y <= 150)
 	{
 		jumpStatus = 0;
 	}
 
-	if (jumpStatus == 0 && (rrSprite.getPosition().y < 510))
+	if (jumpStatus == 0 && (rrSprite.getPosition().y < 505))
 	{
-		rrSprite.move(0, 10);
+		rrSprite.move(0, 15);
 	}
 
 	//boulder movement
-	boulderSprite.move(-10, 0);
-	boulderx -= 10;
+	boulderSprite.move(-15, 0);
+	boulderx -= 15;
 
 	if (boulderx <= -100)
 	{
@@ -96,13 +104,28 @@ void update(sf::RectangleShape floor[], int floorWidth, int floorHeightPosition,
 		isoverlap = true;
 		//	chari.setScale(0, 0);
 	}
+
+     //death conditions
+     if (isoverlap)
+     {
+          music.stop();
+
+          if (deathSound)
+          {
+               sound.setBuffer(squawk);
+               sound.play();
+               deathSound = 0;
+          }
+
+     }
+     
 }
 
 
 
 
 
-void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::Sprite& rrSprite, 
+void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite,
 	sf::Sprite& boulderSprite, sf::Text &text, sf::Text &text2, bool isoverlap)
 {
 	window.clear();
@@ -116,6 +139,8 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::Sprite& rrSp
 	{
 		window.draw(floor[0]);
 		window.draw(floor[1]);
+          window.draw(road[0]);
+          window.draw(road[1]);
 		window.draw(boulderSprite);
 		window.draw(rrSprite);
 		window.draw(text2);
@@ -166,26 +191,36 @@ int main()
 	sf::Texture rrTexture;
 	rrTexture.loadFromFile(resourcePath() + "assets/roadrunner.png");
 	sf::Sprite rrSprite(rrTexture);
-	double pos = 510;
+	double pos = 505;
 	bool jumpStatus = 0;
 	rrSprite.setPosition(25, pos);
 
 	//floor variables
 	int floorWidth = window.getSize().x;
-
 	int blockSize = 200;
 	int floorHeightPosition = window.getSize().y - blockSize;
+     int roadSize = 25;
 
+     //create floor/road textures
 	sf::Texture floorTexture;
 	floorTexture.loadFromFile(resourcePath() + "assets/yellow_floor.jpg");
+     sf::Texture roadTexture;
+     roadTexture.loadFromFile(resourcePath() + "assets/road.jpg");
 
-	sf::RectangleShape floor[2];
+     //create floor/road objects
+     sf::RectangleShape floor[2];
+     sf::RectangleShape road[2];
 
+     //assign floor/road properties
 	for (int x = 0; x < 2; x++)
 	{
 		floor[x].setSize(sf::Vector2f(floorWidth, blockSize));
 		floor[x].setTexture(&floorTexture);
 		floor[x].setPosition(floorWidth * x, floorHeightPosition);
+
+          road[x].setSize(sf::Vector2f(floorWidth, roadSize));
+          road[x].setTexture(&roadTexture);
+          road[x].setPosition(floorWidth * x, floorHeightPosition);
 	}
 
 	// boulder variables
@@ -204,11 +239,25 @@ int main()
 	int eaten = 0;
 	bool isoverlap = false;
 
+     // Music
+     sf::Music music;
+     if (!music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav"))
+          return -1;
+     music.play();
+     music.setLoop(true);
+
+     // Sounds
+     sf::SoundBuffer squawk;
+     if (!squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav"))
+          return -1;
+     sf::Sound sound;
+     bool deathSound = 1;
+
 	while (window.isOpen())
 	{
 		handleEvent(window);
-		update(floor, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2, boulderSprite, eaten, boulderx);
-		draw(window, floor, rrSprite, boulderSprite, text, text2, isoverlap);
+		update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2, boulderSprite, eaten, boulderx, music, sound, squawk, deathSound);
+		draw(window, floor, road, rrSprite, boulderSprite, text, text2, isoverlap);
 	}
 
 	return 0;
