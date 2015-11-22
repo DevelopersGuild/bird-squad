@@ -39,9 +39,9 @@ void handleEvent(sf::RenderWindow& window)
 }
 
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
-     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music &music, 
-     sf::Sound &sound, sf::SoundBuffer &squawk, bool &deathSound, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime,
-     bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer)
+     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music& musicRoadrunner,
+     sf::Music& musicSanic, sf::Sound& sound, sf::SoundBuffer& squawk, bool& deathSound, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, 
+     int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer)
 {
 	//game timer
      if (!isoverlap)
@@ -55,10 +55,8 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Return to roadrunner character
      if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus)
      {
-          music.stop();
-          music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav");
-          music.setVolume(100);
-          music.play();
+          musicSanic.pause();
+          musicRoadrunner.play();
           sanicPowerupStatus = false;
      }
 
@@ -78,7 +76,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 100 + 1 <= 25)                                 // 25% chance to spawn
+          if (rand() % 100 + 1 <= 100)                                 // 25% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
                sanicPowerupSprite.setPosition(floorWidth, 300);
@@ -93,10 +91,8 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Roadrunner and sanicpowerup collision
      if (overlap(rrSprite, sanicPowerupSprite) && !sanicPowerupStatus)
      {
-          music.stop();
-          music.openFromFile(resourcePath() + "assets/sanic_theme.wav");
-          music.setVolume(15);
-          music.play();
+          musicRoadrunner.pause();
+          musicSanic.play();
           sanicPowerupStatus = true;
           sanicTime = clock.getElapsedTime() + sf::seconds(10);
           sanicPowerupSprite.setScale(0, 0);
@@ -180,7 +176,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Death conditions
      if (isoverlap)
      {
-          music.stop();
+          musicRoadrunner.pause();
 
           if (deathSound)
           {
@@ -236,11 +232,15 @@ int main()
      srand(time(NULL));
 
      // Music
-     sf::Music music;
-     if (!music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav"))
-          return -1;
-     music.play();
-     music.setLoop(true);
+     sf::Music musicRoadrunner;
+     musicRoadrunner.openFromFile(resourcePath() + "assets/roadrunner_theme.wav");
+     musicRoadrunner.play();
+     musicRoadrunner.setLoop(true);
+
+     sf::Music musicSanic;
+     musicSanic.openFromFile(resourcePath() + "assets/sanic_theme.wav");
+     musicSanic.setLoop(true);
+     musicSanic.setVolume(15);
 
      // Sounds
      sf::SoundBuffer squawk;
@@ -363,7 +363,7 @@ int main()
 		handleEvent(window);
           draw(window, floor, road, rrSprite, boulderSprite, text, text2, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus);       //draw first
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2,boulderSprite, eaten,      //update drawings
-               boulderx, music, sound, squawk, deathSound, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, sanicTime, 
+               boulderx, musicRoadrunner, musicSanic, sound, squawk, deathSound, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, sanicTime,
                powerupSpawnStatus, powerupSpawnTimer);
 	}
 
