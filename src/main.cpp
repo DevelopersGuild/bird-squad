@@ -53,13 +53,13 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 	}
 
      // Return to roadrunner character
-     if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus == 1)
+     if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus)
      {
           music.stop();
           music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav");
           music.setVolume(100);
           music.play();
-          sanicPowerupStatus = 0;
+          sanicPowerupStatus = false;
      }
 
      // How fast everything moves
@@ -78,12 +78,12 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 100 + 1 <= 20)                                 // 20% chance to spawn
+          if (rand() % 100 + 1 <= 25)                                 // 25% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
                sanicPowerupSprite.setPosition(floorWidth, 300);
           }
-          powerupSpawnStatus = 0;
+          powerupSpawnStatus = false;
      }
 
      // Sanicpowerup movement, how fast the icon moves
@@ -91,13 +91,13 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           sanicPowerupSprite.move(-15, 0);
 
      // Roadrunner and sanicpowerup collision
-     if (overlap(rrSprite, sanicPowerupSprite) && sanicPowerupStatus == 0)
+     if (overlap(rrSprite, sanicPowerupSprite) && !sanicPowerupStatus)
      {
           music.stop();
           music.openFromFile(resourcePath() + "assets/sanic_theme.wav");
           music.setVolume(15);
           music.play();
-          sanicPowerupStatus = 1;
+          sanicPowerupStatus = true;
           sanicTime = clock.getElapsedTime() + sf::seconds(10);
           sanicPowerupSprite.setScale(0, 0);
      }
@@ -122,20 +122,20 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 	// Roadrunner jump
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y >= 505)
 	{
-		jumpStatus = 1;
+		jumpStatus = true;
 	}
 
-	if (jumpStatus == 1 && (rrSprite.getPosition().y <= 505))
+	if (jumpStatus && (rrSprite.getPosition().y <= 505))
 	{
 		rrSprite.move(0, -15);
 	}
 
 	if (rrSprite.getPosition().y <= 150)
 	{
-		jumpStatus = 0;
+		jumpStatus = false;
 	}
 
-	if (jumpStatus == 0 && (rrSprite.getPosition().y < 505))
+	if (!jumpStatus && (rrSprite.getPosition().y < 505))
 	{
 		rrSprite.move(0, 15);
 	}
@@ -143,20 +143,20 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Sanic jump
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && sanicSprite.getPosition().y >= 485)
      {
-          jumpStatus = 1;
+          jumpStatus = true;
      }
 
-     if (jumpStatus == 1 && (sanicSprite.getPosition().y <= 485))
+     if (jumpStatus && (sanicSprite.getPosition().y <= 485))
      {
           sanicSprite.move(0, -15);
      }
 
      if (sanicSprite.getPosition().y <= 150)
      {
-          jumpStatus = 0;
+          jumpStatus = false;
      }
 
-     if (jumpStatus == 0 && (sanicSprite.getPosition().y < 485))
+     if (!jumpStatus && (sanicSprite.getPosition().y < 485))
      {
           sanicSprite.move(0, 15);
      }
@@ -186,7 +186,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           {
                sound.setBuffer(squawk);
                sound.play();
-               deathSound = 0;
+               deathSound = false;
           }
 
      }
@@ -247,7 +247,7 @@ int main()
      if (!squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav"))
           return -1;
      sf::Sound sound;
-     bool deathSound = 1;
+     bool deathSound = true;
 
 	// Time
 	sf::Clock clock;
@@ -286,7 +286,7 @@ int main()
 	rrTexture.loadFromFile(resourcePath() + "assets/roadrunner.png");
 	sf::Sprite rrSprite(rrTexture);
 	double pos = 505;
-	bool jumpStatus = 0;
+	bool jumpStatus = false;
 	rrSprite.setPosition(25, pos);
 
 	//floor variables
