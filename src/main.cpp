@@ -39,8 +39,8 @@ void handleEvent(sf::RenderWindow& window)
 }
 
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
-     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music& musicRoadrunner,
-     sf::Music& musicSanic, sf::Sound& sound, sf::SoundBuffer& squawk, bool& deathSound, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, 
+     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music& roadrunnerMusic,
+     sf::Music& sanicMusic, sf::Sound& squawkSound, bool& deathSound, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus,
      int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer)
 {
 	//game timer
@@ -55,8 +55,8 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Return to roadrunner character
      if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus)
      {
-          musicSanic.pause();
-          musicRoadrunner.play();
+          sanicMusic.pause();
+          roadrunnerMusic.play();
           sanicPowerupStatus = false;
      }
 
@@ -91,8 +91,8 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Roadrunner and sanicpowerup collision
      if (overlap(rrSprite, sanicPowerupSprite) && !sanicPowerupStatus)
      {
-          musicRoadrunner.pause();
-          musicSanic.play();
+          roadrunnerMusic.pause();
+          sanicMusic.play();
           sanicPowerupStatus = true;
           sanicTime = clock.getElapsedTime() + sf::seconds(10);
           sanicPowerupSprite.setScale(0, 0);
@@ -166,7 +166,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		boulderSprite.setPosition(boulderx = 1000, 480);
 	}
 
-     if (overlap(rrSprite, boulderSprite) && sanicPowerupStatus == 0)
+     if (overlap(rrSprite, boulderSprite) && !sanicPowerupStatus)
 	{
 		eaten++;
 		isoverlap = true;
@@ -174,16 +174,11 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 	}
 
      // Death conditions
-     if (isoverlap)
+     if (isoverlap && deathSound)
      {
-          musicRoadrunner.pause();
-
-          if (deathSound)
-          {
-               sound.setBuffer(squawk);
-               sound.play();
-               deathSound = false;
-          }
+          roadrunnerMusic.pause();
+          squawkSound.play();
+          deathSound = false;
 
      }
      
@@ -232,21 +227,21 @@ int main()
      srand(time(NULL));
 
      // Music
-     sf::Music musicRoadrunner;
-     musicRoadrunner.openFromFile(resourcePath() + "assets/roadrunner_theme.wav");
-     musicRoadrunner.play();
-     musicRoadrunner.setLoop(true);
+     sf::Music roadrunnerMusic;
+     roadrunnerMusic.openFromFile(resourcePath() + "assets/roadrunner_theme.wav");
+     roadrunnerMusic.play();
+     roadrunnerMusic.setLoop(true);
 
-     sf::Music musicSanic;
-     musicSanic.openFromFile(resourcePath() + "assets/sanic_theme.wav");
-     musicSanic.setLoop(true);
-     musicSanic.setVolume(15);
+     sf::Music sanicMusic;
+     sanicMusic.openFromFile(resourcePath() + "assets/sanic_theme.wav");
+     sanicMusic.setLoop(true);
+     sanicMusic.setVolume(15);
 
      // Sounds
      sf::SoundBuffer squawk;
-     if (!squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav"))
-          return -1;
-     sf::Sound sound;
+     squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav");
+     sf::Sound squawkSound;
+     squawkSound.setBuffer(squawk);
      bool deathSound = true;
 
 	// Time
@@ -363,8 +358,8 @@ int main()
 		handleEvent(window);
           draw(window, floor, road, rrSprite, boulderSprite, text, text2, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus);       //draw first
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2,boulderSprite, eaten,      //update drawings
-               boulderx, musicRoadrunner, musicSanic, sound, squawk, deathSound, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, sanicTime,
-               powerupSpawnStatus, powerupSpawnTimer);
+               boulderx, roadrunnerMusic, sanicMusic, squawkSound, deathSound, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer);
 	}
 
 	return 0;
