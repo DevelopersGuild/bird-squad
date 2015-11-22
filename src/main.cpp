@@ -52,6 +52,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		text2.setString(ss.str().c_str());
 	}
 
+     // Return to roadrunner character
      if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus == 1)
      {
           music.stop();
@@ -62,10 +63,10 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      }
 
      // How fast everything moves
-     if (sanicPowerupStatus && (clock.getElapsedTime() <= sanicTime - sf::seconds(1)))         // slows down at the end of run
+     if (sanicPowerupStatus && (clock.getElapsedTime() <= sanicTime - sf::seconds(1)))         //sanic run speed
           globalSpeed = 50;
      else
-          globalSpeed = 15;
+          globalSpeed = 15;                                                                    //roadrunner run speed
 
      // Powerup spawner, checks every 10 seconds
      if (clock.getElapsedTime() >= powerupSpawnTimer)
@@ -78,7 +79,10 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      if (powerupSpawnStatus)
      {
           if (rand() % 100 + 1 <= 20)                                 // 20% chance to spawn
+          {
+               sanicPowerupSprite.setScale(0.05, 0.05);
                sanicPowerupSprite.setPosition(floorWidth, 300);
+          }
           powerupSpawnStatus = 0;
      }
 
@@ -95,6 +99,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           music.play();
           sanicPowerupStatus = 1;
           sanicTime = clock.getElapsedTime() + sf::seconds(10);
+          sanicPowerupSprite.setScale(0, 0);
      }
 
      //Infinite floor/road
