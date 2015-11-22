@@ -39,10 +39,12 @@ void handleEvent(sf::RenderWindow& window)
 }
 
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
-     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music &music, sf::Sound &sound, sf::SoundBuffer &squawk, bool &deathSound)
+     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music &music, 
+     sf::Sound &sound, sf::SoundBuffer &squawk, bool &deathSound, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime,
+     bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer)
 {
 	//game timer
-	if (!isoverlap)
+     if (!isoverlap)
 	{
 		sf::Time time1 = clock.getElapsedTime();
 		ss.str(std::string());
@@ -50,16 +52,59 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		text2.setString(ss.str().c_str());
 	}
 
-	//infinite floor/road
-	int position = 15;
+     if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus == 1)
+     {
+          music.stop();
+          music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav");
+          music.setVolume(100);
+          music.play();
+          sanicPowerupStatus = 0;
+     }
 
-	floor[0].move(-position, 0);
-	floor[1].move(-position, 0);
+     // How fast everything moves
+     if (sanicPowerupStatus && (clock.getElapsedTime() <= sanicTime - sf::seconds(1)))         // slows down at the end of run
+          globalSpeed = 50;
+     else
+          globalSpeed = 15;
 
-     road[0].move(-position, 0);
-     road[1].move(-position, 0);
+     // Powerup spawner, checks every 10 seconds
+     if (clock.getElapsedTime() >= powerupSpawnTimer)
+     {
+          powerupSpawnTimer += sf::seconds(10);                       //time to spawn for every consecutive powerup after the first
+          powerupSpawnStatus = 1;
+     }
 
-	if (floor[0].getPosition().x <= -floorWidth)
+     // Powerup spawn chance
+     if (powerupSpawnStatus)
+     {
+          if (rand() % 100 + 1 <= 20)                                 // 20% chance to spawn
+               sanicPowerupSprite.setPosition(floorWidth, 300);
+          powerupSpawnStatus = 0;
+     }
+
+     // Sanicpowerup movement, how fast the icon moves
+     if (sanicPowerupSprite.getPosition().x >= -floorWidth)
+          sanicPowerupSprite.move(-15, 0);
+
+     // Roadrunner and sanicpowerup collision
+     if (overlap(rrSprite, sanicPowerupSprite) && sanicPowerupStatus == 0)
+     {
+          music.stop();
+          music.openFromFile(resourcePath() + "assets/sanic_theme.wav");
+          music.setVolume(15);
+          music.play();
+          sanicPowerupStatus = 1;
+          sanicTime = clock.getElapsedTime() + sf::seconds(10);
+     }
+
+     //Infinite floor/road
+     floor[0].move(-globalSpeed, 0);
+     floor[1].move(-globalSpeed, 0);
+
+     road[0].move(-globalSpeed, 0);
+     road[1].move(-globalSpeed, 0);
+     
+     if (floor[0].getPosition().x <= -floorWidth)
 	{
 		floor[0].setPosition(0, floorHeightPosition);
 		floor[1].setPosition(floorWidth, floorHeightPosition);
@@ -67,8 +112,9 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           road[0].setPosition(0, floorHeightPosition);
           road[1].setPosition(floorWidth, floorHeightPosition);
 	}
+     
 
-	//roadrunner jump
+	// Roadrunner jump
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y >= 505)
 	{
 		jumpStatus = 1;
@@ -89,23 +135,44 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		rrSprite.move(0, 15);
 	}
 
+     // Sanic jump
+     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && sanicSprite.getPosition().y >= 485)
+     {
+          jumpStatus = 1;
+     }
+
+     if (jumpStatus == 1 && (sanicSprite.getPosition().y <= 485))
+     {
+          sanicSprite.move(0, -15);
+     }
+
+     if (sanicSprite.getPosition().y <= 150)
+     {
+          jumpStatus = 0;
+     }
+
+     if (jumpStatus == 0 && (sanicSprite.getPosition().y < 485))
+     {
+          sanicSprite.move(0, 15);
+     }
+
 	//boulder movement
-	boulderSprite.move(-15, 0);
-	boulderx -= 15;
+     boulderSprite.move(-globalSpeed, 0);
+     boulderx -= globalSpeed;
 
 	if (boulderx <= -100)
 	{
 		boulderSprite.setPosition(boulderx = 1000, 480);
 	}
 
-	if (overlap(rrSprite, boulderSprite))
+     if (overlap(rrSprite, boulderSprite) && sanicPowerupStatus == 0)
 	{
 		eaten++;
 		isoverlap = true;
 		//	chari.setScale(0, 0);
 	}
 
-     //death conditions
+     // Death conditions
      if (isoverlap)
      {
           music.stop();
@@ -123,10 +190,8 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
 
 
-
-
 void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite,
-	sf::Sprite& boulderSprite, sf::Text &text, sf::Text &text2, bool isoverlap)
+     sf::Sprite& boulderSprite, sf::Text &text, sf::Text &text2, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus)
 {
 	window.clear();
 
@@ -141,8 +206,12 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
 		window.draw(floor[1]);
           window.draw(road[0]);
           window.draw(road[1]);
+          window.draw(sanicPowerupSprite);
 		window.draw(boulderSprite);
-		window.draw(rrSprite);
+          if (sanicPowerupStatus)
+               window.draw(sanicSprite);     //draws sanic during his powerup phase
+          else
+               window.draw(rrSprite);        //otherwise draw roadrunner
 		window.draw(text2);
 
 	}
@@ -154,6 +223,26 @@ int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1000, 800), "RoadRunner");
 	window.setVerticalSyncEnabled(true);
+
+     //IMPORTANT FOR GAME TO BE CONSISTENT, use this whenever possible
+     int globalSpeed = 15;
+
+     //GENERATE RANDMONESS
+     srand(time(NULL));
+
+     // Music
+     sf::Music music;
+     if (!music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav"))
+          return -1;
+     music.play();
+     music.setLoop(true);
+
+     // Sounds
+     sf::SoundBuffer squawk;
+     if (!squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav"))
+          return -1;
+     sf::Sound sound;
+     bool deathSound = 1;
 
 	// Time
 	sf::Clock clock;
@@ -196,25 +285,26 @@ int main()
 	rrSprite.setPosition(25, pos);
 
 	//floor variables
-	int floorWidth = window.getSize().x;
-	int blockSize = 200;
-	int floorHeightPosition = window.getSize().y - blockSize;
+	int floorWidth = window.getSize().x;                         // floorWidth is the size of the window
+	int floorSize = 200;
+	int floorHeightPosition = window.getSize().y - floorSize;
      int roadSize = 25;
 
-     //create floor/road textures
+     // Floor and road objects
 	sf::Texture floorTexture;
+     floorTexture.setRepeated(true);
 	floorTexture.loadFromFile(resourcePath() + "assets/yellow_floor.jpg");
-     sf::Texture roadTexture;
-     roadTexture.loadFromFile(resourcePath() + "assets/road.jpg");
-
-     //create floor/road objects
      sf::RectangleShape floor[2];
-     sf::RectangleShape road[2];
 
+     sf::Texture roadTexture;
+     roadTexture.setRepeated(true);
+     roadTexture.loadFromFile(resourcePath() + "assets/road.jpg");
+     sf::RectangleShape road[2];
+     
      //assign floor/road properties
 	for (int x = 0; x < 2; x++)
 	{
-		floor[x].setSize(sf::Vector2f(floorWidth, blockSize));
+		floor[x].setSize(sf::Vector2f(floorWidth, floorSize));
 		floor[x].setTexture(&floorTexture);
 		floor[x].setPosition(floorWidth * x, floorHeightPosition);
 
@@ -229,9 +319,8 @@ int main()
 	sf::Sprite boulderSprite(boulderTexture);
 	boulderSprite.setScale(0.7, 0.7);
 
-
 	int boulderx = 1000;
-	int bouldery = window.getSize().y + blockSize;
+	int bouldery = window.getSize().y + floorSize;
 
 	boulderSprite.setPosition(boulderx, bouldery);
 
@@ -239,25 +328,38 @@ int main()
 	int eaten = 0;
 	bool isoverlap = false;
 
-     // Music
-     sf::Music music;
-     if (!music.openFromFile(resourcePath() + "assets/roadrunner_theme.wav"))
-          return -1;
-     music.play();
-     music.setLoop(true);
+     // Sanic object
+     sf::Texture sanicTexture;
+     sanicTexture.loadFromFile(resourcePath() + "assets/sanic.png");
+     sf::Sprite sanicSprite(sanicTexture);
 
-     // Sounds
-     sf::SoundBuffer squawk;
-     if (!squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav"))
-          return -1;
-     sf::Sound sound;
-     bool deathSound = 1;
+     // Sanic properties
+     sanicSprite.setScale(0.15, 0.15);
+     sanicSprite.setPosition(25, 485);
+
+     // Sanicpowerup object
+     sf::Texture sanicPowerupTexture;
+     sanicPowerupTexture.loadFromFile(resourcePath() + "assets/sanic_powerup.png");
+     sf::Sprite sanicPowerupSprite(sanicPowerupTexture);
+
+     // Sanicpowerup properties
+     sanicPowerupSprite.setScale(0.05, 0.05);
+     sanicPowerupSprite.setPosition(-floorWidth, 300);
+
+     // Powerup variables
+     bool powerupSpawnStatus = false;
+     bool sanicPowerupStatus = false;
+
+     sf::Time powerupSpawnTimer = sf::seconds(10);     //how long it takes for the "FIRST" powerup to spawn
+     sf::Time sanicTime;                               //how long sanic's powerup last
 
 	while (window.isOpen())
 	{
 		handleEvent(window);
-		update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2, boulderSprite, eaten, boulderx, music, sound, squawk, deathSound);
-		draw(window, floor, road, rrSprite, boulderSprite, text, text2, isoverlap);
+          draw(window, floor, road, rrSprite, boulderSprite, text, text2, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus);       //draw first
+          update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2,boulderSprite, eaten,      //update drawings
+               boulderx, music, sound, squawk, deathSound, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, sanicTime, 
+               powerupSpawnStatus, powerupSpawnTimer);
 	}
 
 	return 0;
