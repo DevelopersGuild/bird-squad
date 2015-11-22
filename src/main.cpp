@@ -76,7 +76,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 100 + 1 <= 100)                                 // 25% chance to spawn
+          if (rand() % 100 + 1 <= 25)                                 // 25% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
                sanicPowerupSprite.setPosition(floorWidth, 300);
