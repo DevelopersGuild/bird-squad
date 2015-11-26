@@ -62,7 +62,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
      // How fast everything moves
      if (sanicPowerupStatus && (clock.getElapsedTime() <= sanicTime - sf::seconds(1)))         //sanic run speed
-          globalSpeed = 50;
+          globalSpeed = 75;
      else
           globalSpeed = 15;                                                                    //roadrunner run speed
 
@@ -76,7 +76,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 100 + 1 <= 25)                                 // 25% chance to spawn
+          if (rand() % 100 + 1 <= 33)                                 // 33% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
                sanicPowerupSprite.setPosition(floorWidth, 300);
