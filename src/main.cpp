@@ -161,16 +161,15 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      boulderSprite.move(-globalSpeed, 0);
      boulderx -= globalSpeed;
 
-	if (boulderx <= -100)
+	if (boulderx <= -500)
 	{
-		boulderSprite.setPosition(boulderx = 1000, 480);
+		boulderSprite.setPosition(boulderx = 1000, 500);
 	}
 
      if (overlap(rrSprite, boulderSprite) && !sanicPowerupStatus)
 	{
 		eaten++;
 		isoverlap = true;
-		//	chari.setScale(0, 0);
 	}
 
      // Death conditions
@@ -315,9 +314,9 @@ int main()
 
 	// boulder variables
 	sf::Texture boulderTexture;
-	boulderTexture.loadFromFile(resourcePath() + "assets/boulder.jpeg");
+	boulderTexture.loadFromFile(resourcePath() + "assets/boulder.png");
 	sf::Sprite boulderSprite(boulderTexture);
-	boulderSprite.setScale(0.7, 0.7);
+	boulderSprite.setScale(0.3, 0.3);
 
 	int boulderx = 1000;
 	int bouldery = window.getSize().y + floorSize;
