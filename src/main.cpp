@@ -39,9 +39,9 @@ void handleEvent(sf::RenderWindow& window)
 }
 
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
-     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &text2, sf::Sprite& boulderSprite, int& eaten, int& boulderx, sf::Music& roadrunnerMusic,
-     sf::Music& sanicMusic, sf::Sound& squawkSound, bool& deathSound, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus,
-     int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer)
+     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic,
+     sf::Music& sanicMusic, sf::Sound& squawkSound, bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus,
+     int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer, sf::Sprite arrayOfBoulderObjectsSprite[])
 {
 	//game timer
      if (!isoverlap)
@@ -49,7 +49,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		sf::Time time1 = clock.getElapsedTime();
 		ss.str(std::string());
 		ss << setprecision(2) << fixed << static_cast<double>(time1.asSeconds());
-		text2.setString(ss.str().c_str());
+		textTime.setString(ss.str().c_str());
 	}
 
      // Return to roadrunner character
@@ -157,27 +157,36 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           sanicSprite.move(0, 15);
      }
 
-	//boulder movement
-     boulderSprite.move(-globalSpeed, 0);
-     boulderx -= globalSpeed;
+     // Movement of boulder
+     for (int i = 0; i < 3; i++)
+     {
+          arrayOfBoulderObjectsSprite[i].move(-globalSpeed, 0);
+     }
 
-	if (boulderx <= -500)
-	{
-		boulderSprite.setPosition(boulderx = 1000, 500);
-	}
+     // Randomize boulder spawn
+     for (int i = 0; i < 3; i++)
+     {
+          if (arrayOfBoulderObjectsSprite[i].getPosition().x <= -500)
+          {
+               arrayOfBoulderObjectsSprite[i].setPosition(rand() % 100000 + floorWidth, 500);
+          }
+     }
 
-     if (overlap(rrSprite, boulderSprite) && !sanicPowerupStatus)
-	{
-		eaten++;
-		isoverlap = true;
-	}
+     // Roadrunner and boulder collision
+     for (int i = 0; i < 3; i++)
+     {
+          if (overlap(rrSprite, arrayOfBoulderObjectsSprite[i]) && !sanicPowerupStatus)
+          {
+               isoverlap = true;
+          }
+     }
 
      // Death conditions
-     if (isoverlap && deathSound)
+     if (isoverlap && deathStatus)
      {
           roadrunnerMusic.pause();
           squawkSound.play();
-          deathSound = false;
+          deathStatus = false;
 
      }
      
@@ -185,15 +194,16 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
 
 
-void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite,
-     sf::Sprite& boulderSprite, sf::Text &text, sf::Text &text2, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus)
+void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite, sf::Text &text, 
+     sf::Text &textTime, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus, 
+     sf::Sprite arrayOfBoulderObjectsSprite[])
 {
 	window.clear();
 
 	if (isoverlap)
 	{
 		window.draw(text);
-		window.draw(text2);
+		window.draw(textTime);
 	}
 	else
 	{
@@ -202,12 +212,15 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
           window.draw(road[0]);
           window.draw(road[1]);
           window.draw(sanicPowerupSprite);
-		window.draw(boulderSprite);
+          for (int i = 0; i < 3; i++)
+          {
+               window.draw(arrayOfBoulderObjectsSprite[i]);
+          }
           if (sanicPowerupStatus)
                window.draw(sanicSprite);     //draws sanic during his powerup phase
           else
                window.draw(rrSprite);        //otherwise draw roadrunner
-		window.draw(text2);
+		window.draw(textTime);
 
 	}
 
@@ -241,7 +254,7 @@ int main()
      squawk.loadFromFile(resourcePath() + "assets/chicken_squawk.wav");
      sf::Sound squawkSound;
      squawkSound.setBuffer(squawk);
-     bool deathSound = true;
+     bool deathStatus = true;
 
 	// Time
 	sf::Clock clock;
@@ -252,17 +265,17 @@ int main()
 	std::stringstream ss;
 	ss.str(std::string());
 	ss << time1.asSeconds();
-	sf::Text text2;
-	text2.setString(ss.str().c_str());
+	sf::Text textTime;
+	textTime.setString(ss.str().c_str());
 
 	// Load and set game time font
 	sf::Font font2;
-	text2.setFont(font2);
+	textTime.setFont(font2);
 	font2.loadFromFile(resourcePath() + "assets/Pacifico.ttf");
-	text2.setCharacterSize(100);
-	text2.setStyle(sf::Text::Bold);
-	text2.setColor(sf::Color::Blue);
-	text2.setPosition(0, 0);
+	textTime.setCharacterSize(100);
+	textTime.setStyle(sf::Text::Bold);
+	textTime.setColor(sf::Color::Blue);
+	textTime.setPosition(0, 0);
 
 	// Load and set game over font
 	sf::Font font;
@@ -312,19 +325,20 @@ int main()
           road[x].setPosition(floorWidth * x, floorHeightPosition);
 	}
 
-	// boulder variables
+	// boulder object
 	sf::Texture boulderTexture;
 	boulderTexture.loadFromFile(resourcePath() + "assets/boulder.png");
-	sf::Sprite boulderSprite(boulderTexture);
-	boulderSprite.setScale(0.3, 0.3);
+     sf::Sprite arrayOfBoulderObjectsSprite[3];
 
-	int boulderx = 1000;
-	int bouldery = window.getSize().y + floorSize;
-
-	boulderSprite.setPosition(boulderx, bouldery);
+     // boulder properties
+     for (int i = 0; i < 3; i++)
+     {
+          arrayOfBoulderObjectsSprite[i].setTexture(boulderTexture);
+          arrayOfBoulderObjectsSprite[i].setScale(0.3, 0.3);
+          arrayOfBoulderObjectsSprite[i].setPosition(-500, 500);
+     }
 
 	// Overlap variables
-	int eaten = 0;
 	bool isoverlap = false;
 
      // Sanic object
@@ -355,10 +369,14 @@ int main()
 	while (window.isOpen())
 	{
 		handleEvent(window);
-          draw(window, floor, road, rrSprite, boulderSprite, text, text2, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus);       //draw first
-          update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, text2,boulderSprite, eaten,      //update drawings
-               boulderx, roadrunnerMusic, sanicMusic, squawkSound, deathSound, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
-               sanicTime, powerupSpawnStatus, powerupSpawnTimer);
+
+          //draw first
+          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfBoulderObjectsSprite);      
+
+          //update drawings
+          update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
+               roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfBoulderObjectsSprite);
 	}
 
 	return 0;
