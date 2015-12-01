@@ -39,9 +39,9 @@ void handleEvent(sf::RenderWindow& window)
 }
 
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
-     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic,
-     sf::Music& sanicMusic, sf::Sound& squawkSound, bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus,
-     int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, sf::Time& powerupSpawnTimer, sf::Sprite arrayOfBoulderObjectsSprite[])
+     bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic, sf::Music& sanicMusic, sf::Sound& squawkSound, 
+     bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, 
+     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfBoulderObjectsSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop)
 {
 	//game timer
      if (!isoverlap)
@@ -76,7 +76,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 100 + 1 <= 33)                                 // 33% chance to spawn
+          if (rand() % 101 <= 33)                                 // 33% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
                sanicPowerupSprite.setPosition(floorWidth, 300);
@@ -85,8 +85,8 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      }
 
      // Sanicpowerup movement, how fast the icon moves
-     if (sanicPowerupSprite.getPosition().x >= -floorWidth)
-          sanicPowerupSprite.move(-15, 0);
+     if (sanicPowerupSprite.getPosition().x >= objStop)
+          sanicPowerupSprite.move(-globalSpeed, 0);
 
      // Roadrunner and sanicpowerup collision
      if (overlap(rrSprite, sanicPowerupSprite) && !sanicPowerupStatus)
@@ -158,22 +158,43 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      }
 
      // Movement of boulder
-     for (int i = 0; i < 3; i++)
+     for (int i = 0; i < numBoulder; i++)
      {
-          arrayOfBoulderObjectsSprite[i].move(-globalSpeed, 0);
+          if (arrayOfBoulderObjectsSprite[i].getPosition().x >= objStop)
+               arrayOfBoulderObjectsSprite[i].move(-globalSpeed, 0);
      }
 
-     // Randomize boulder spawn
-     for (int i = 0; i < 3; i++)
+     // First checkpoint: spawns one random boulder
+     for (int i = 0; i < numBoulder; i++)
      {
-          if (arrayOfBoulderObjectsSprite[i].getPosition().x <= -500)
+          if ((arrayOfBoulderObjectsSprite[i].getPosition().x >= 900 && arrayOfBoulderObjectsSprite[i].getPosition().x <= 1000) && boulderSpawnStatus)
           {
-               arrayOfBoulderObjectsSprite[i].setPosition(rand() % 100000 + floorWidth, 500);
+               boulderSpawnStatus = false;
+               int reroll = true;
+               int randBoulderSpawn = floorWidth + 600 + rand() % 1000;
+
+               while (reroll)
+               {
+                    int randBoulder = rand() % numBoulder;
+
+                    if (arrayOfBoulderObjectsSprite[randBoulder].getPosition().x <= objStop)
+                    {
+                         arrayOfBoulderObjectsSprite[randBoulder].setPosition(randBoulderSpawn, 500);
+                         reroll = false;
+                    }
+               }
           }
      }
 
-     // Roadrunner and boulder collision
-     for (int i = 0; i < 3; i++)
+     // Second Checkpoint: renable spawning of boulders
+     for (int i = 0; i < numBoulder; i++)
+     {
+          if (arrayOfBoulderObjectsSprite[i].getPosition().x >= 800 && arrayOfBoulderObjectsSprite[i].getPosition().x < 900)
+               boulderSpawnStatus = true;
+     }
+
+     // Check collision for all boulders
+     for (int i = 0; i < numBoulder; i++)
      {
           if (overlap(rrSprite, arrayOfBoulderObjectsSprite[i]) && !sanicPowerupStatus)
           {
@@ -196,7 +217,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
 void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite, sf::Text &text, 
      sf::Text &textTime, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus, 
-     sf::Sprite arrayOfBoulderObjectsSprite[])
+     sf::Sprite arrayOfBoulderObjectsSprite[], int numBoulder)
 {
 	window.clear();
 
@@ -212,7 +233,7 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
           window.draw(road[0]);
           window.draw(road[1]);
           window.draw(sanicPowerupSprite);
-          for (int i = 0; i < 3; i++)
+          for (int i = 0; i < numBoulder; i++)
           {
                window.draw(arrayOfBoulderObjectsSprite[i]);
           }
@@ -237,6 +258,9 @@ int main()
 
      //GENERATE RANDMONESS
      srand(time(NULL));
+
+     //STOP POINT FOR ALL OBJECTS
+     int objStop = -500;
 
      // Music
      sf::Music roadrunnerMusic;
@@ -328,15 +352,23 @@ int main()
 	// boulder object
 	sf::Texture boulderTexture;
 	boulderTexture.loadFromFile(resourcePath() + "assets/boulder.png");
-     sf::Sprite arrayOfBoulderObjectsSprite[3];
+     sf::Sprite arrayOfBoulderObjectsSprite[6];
+     int numBoulder = 6;
+     bool boulderSpawnStatus = true;
 
      // boulder properties
-     for (int i = 0; i < 3; i++)
+     for (int i = 0; i < numBoulder; i++)
      {
           arrayOfBoulderObjectsSprite[i].setTexture(boulderTexture);
           arrayOfBoulderObjectsSprite[i].setScale(0.3, 0.3);
-          arrayOfBoulderObjectsSprite[i].setPosition(-500, 500);
+          arrayOfBoulderObjectsSprite[i].setPosition(objStop, 500);                          // Spawn boulders off screen at stop point
      }
+
+     // Randomly spawn first boulder and set position
+     int randBoulder = rand() % numBoulder;
+     int randBoulderSpawn = floorWidth + 600 + rand() % 1000;
+     arrayOfBoulderObjectsSprite[randBoulder].setPosition(randBoulderSpawn, 500);
+
 
 	// Overlap variables
 	bool isoverlap = false;
@@ -357,7 +389,7 @@ int main()
 
      // Sanicpowerup properties
      sanicPowerupSprite.setScale(0.05, 0.05);
-     sanicPowerupSprite.setPosition(-floorWidth, 300);
+     sanicPowerupSprite.setPosition(objStop, 300);                                        // Spawn sanicPowerup offscreen at stop point
 
      // Powerup variables
      bool powerupSpawnStatus = false;
@@ -371,12 +403,12 @@ int main()
 		handleEvent(window);
 
           //draw first
-          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfBoulderObjectsSprite);      
+          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfBoulderObjectsSprite, numBoulder);      
 
           //update drawings
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
                roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
-               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfBoulderObjectsSprite);
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfBoulderObjectsSprite, boulderSpawnStatus, numBoulder, objStop);
 	}
 
 	return 0;
