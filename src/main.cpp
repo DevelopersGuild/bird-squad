@@ -171,7 +171,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           {
                boulderSpawnStatus = false;
                int reroll = true;
-               int randBoulderSpawn = floorWidth + 600 + rand() % 1000;
+               int randBoulderSpawn = floorWidth + 700 + rand() % 1000;
 
                while (reroll)
                {
@@ -366,7 +366,7 @@ int main()
 
      // Randomly spawn first boulder and set position
      int randBoulder = rand() % numBoulder;
-     int randBoulderSpawn = floorWidth + 600 + rand() % 1000;
+     int randBoulderSpawn = floorWidth + 700 + rand() % 1000;
      arrayOfBoulderObjectsSprite[randBoulder].setPosition(randBoulderSpawn, 500);
 
 
