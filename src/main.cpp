@@ -41,7 +41,7 @@ void handleEvent(sf::RenderWindow& window)
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
      bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic, sf::Music& sanicMusic, sf::Sound& squawkSound, 
      bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, 
-     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfBoulderObjectsSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop)
+     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop)
 {
 	//game timer
      if (!isoverlap)
@@ -62,7 +62,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
      // How fast everything moves
      if (sanicPowerupStatus && (clock.getElapsedTime() <= sanicTime - sf::seconds(1)))         //sanic run speed
-          globalSpeed = 75;
+          globalSpeed = 100;
      else
           globalSpeed = 15;                                                                    //roadrunner run speed
 
@@ -126,7 +126,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		rrSprite.move(0, -15);
 	}
 
-	if (rrSprite.getPosition().y <= 150)
+	if (rrSprite.getPosition().y <= 100)
 	{
 		jumpStatus = false;
 	}
@@ -147,7 +147,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           sanicSprite.move(0, -15);
      }
 
-     if (sanicSprite.getPosition().y <= 150)
+     if (sanicSprite.getPosition().y <= 100)
      {
           jumpStatus = false;
      }
@@ -157,17 +157,20 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           sanicSprite.move(0, 15);
      }
 
-     // Movement of boulder
-     for (int i = 0; i < numBoulder; i++)
+     // Movement of objects
+     for (int i = 0; i < numBoulder-1; i++)
      {
-          if (arrayOfBoulderObjectsSprite[i].getPosition().x >= objStop)
-               arrayOfBoulderObjectsSprite[i].move(-globalSpeed, 0);
+          if (arrayOfObjectSprite[i].getPosition().x >= objStop)
+               arrayOfObjectSprite[i].move(-globalSpeed, 0);
      }
 
-     // First checkpoint: spawns one random boulder
+     if (arrayOfObjectSprite[6].getPosition().x >= objStop)
+          arrayOfObjectSprite[6].move(-globalSpeed * 1.5, 0);             // Coyote run speed
+
+     // First checkpoint: spawns one object
      for (int i = 0; i < numBoulder; i++)
      {
-          if ((arrayOfBoulderObjectsSprite[i].getPosition().x >= 900 && arrayOfBoulderObjectsSprite[i].getPosition().x <= 1000) && boulderSpawnStatus)
+          if ((arrayOfObjectSprite[i].getPosition().x >= 800 && arrayOfObjectSprite[i].getPosition().x <= 1000) && boulderSpawnStatus)
           {
                boulderSpawnStatus = false;
                int reroll = true;
@@ -177,26 +180,37 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
                {
                     int randBoulder = rand() % numBoulder;
 
-                    if (arrayOfBoulderObjectsSprite[randBoulder].getPosition().x <= objStop)
+                    if (arrayOfObjectSprite[randBoulder].getPosition().x <= objStop)
                     {
-                         arrayOfBoulderObjectsSprite[randBoulder].setPosition(randBoulderSpawn, 500);
+                         if (randBoulder >= 0 && randBoulder < 2)
+                              arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn, 500);            // boulder
+
+                         else if (randBoulder >= 2 && randBoulder < 4)
+                              arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn, 400);            // cactus
+
+                         else if (randBoulder >= 4 && randBoulder < 6)
+                              arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn, 510);            // tumbleWeed
+
+                         else
+                              arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn+1000, 470);       // coyote, give him a running start
+
                          reroll = false;
                     }
                }
           }
      }
 
-     // Second Checkpoint: renable spawning of boulders
+     // Second Checkpoint: renable spawning of objects
      for (int i = 0; i < numBoulder; i++)
      {
-          if (arrayOfBoulderObjectsSprite[i].getPosition().x >= 800 && arrayOfBoulderObjectsSprite[i].getPosition().x < 900)
+          if (arrayOfObjectSprite[i].getPosition().x >= 600 && arrayOfObjectSprite[i].getPosition().x < 800)
                boulderSpawnStatus = true;
      }
 
-     // Check collision for all boulders
+     // Check collision for all objects in array
      for (int i = 0; i < numBoulder; i++)
      {
-          if (overlap(rrSprite, arrayOfBoulderObjectsSprite[i]) && !sanicPowerupStatus)
+          if (overlap(rrSprite, arrayOfObjectSprite[i]) && !sanicPowerupStatus)
           {
                isoverlap = true;
           }
@@ -217,7 +231,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
 void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite, sf::Text &text, 
      sf::Text &textTime, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus, 
-     sf::Sprite arrayOfBoulderObjectsSprite[], int numBoulder)
+     sf::Sprite arrayOfObjectSprite[], int numBoulder)
 {
 	window.clear();
 
@@ -235,7 +249,7 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
           window.draw(sanicPowerupSprite);
           for (int i = 0; i < numBoulder; i++)
           {
-               window.draw(arrayOfBoulderObjectsSprite[i]);
+               window.draw(arrayOfObjectSprite[i]);
           }
           if (sanicPowerupStatus)
                window.draw(sanicSprite);     //draws sanic during his powerup phase
@@ -349,25 +363,70 @@ int main()
           road[x].setPosition(floorWidth * x, floorHeightPosition);
 	}
 
+     // the array of objects
+     sf::Sprite arrayOfObjectSprite[7];
+     int numBoulder = 7;
+
 	// boulder object
 	sf::Texture boulderTexture;
 	boulderTexture.loadFromFile(resourcePath() + "assets/boulder.png");
-     sf::Sprite arrayOfBoulderObjectsSprite[6];
-     int numBoulder = 6;
      bool boulderSpawnStatus = true;
 
      // boulder properties
-     for (int i = 0; i < numBoulder; i++)
+     for (int i = 0; i < 2; i++)
      {
-          arrayOfBoulderObjectsSprite[i].setTexture(boulderTexture);
-          arrayOfBoulderObjectsSprite[i].setScale(0.3, 0.3);
-          arrayOfBoulderObjectsSprite[i].setPosition(objStop, 500);                          // Spawn boulders off screen at stop point
+          arrayOfObjectSprite[i].setTexture(boulderTexture);
+          arrayOfObjectSprite[i].setScale(0.3, 0.3);
+          arrayOfObjectSprite[i].setPosition(objStop, 500);                          // Spawn boulders off screen at stop point
      }
 
-     // Randomly spawn first boulder and set position
+     // cactus object
+     sf::Texture cactusTexture;
+     cactusTexture.loadFromFile(resourcePath() + "assets/cactus.png");
+
+     // cactus properties
+     for (int i = 2; i < 4; i++)
+     {
+          arrayOfObjectSprite[i].setTexture(cactusTexture);
+          arrayOfObjectSprite[i].setScale(0.04, 0.04);
+          arrayOfObjectSprite[i].setPosition(objStop, 400);
+     }
+
+     // tumbleWeed object
+     sf::Texture tumbleWeed;
+     tumbleWeed.loadFromFile(resourcePath() + "assets/tumble_weed.png");
+
+     // tumbleWeed properties
+     for (int i = 4; i < 6; i++)
+     {
+          arrayOfObjectSprite[i].setTexture(tumbleWeed);
+          arrayOfObjectSprite[i].setScale(0.4, 0.4);
+          arrayOfObjectSprite[i].setPosition(objStop, 500);
+     }
+
+     // coyote object
+     sf::Texture coyote;
+     coyote.loadFromFile(resourcePath() + "assets/coyote.png");
+
+     arrayOfObjectSprite[6].setTexture(coyote);
+     arrayOfObjectSprite[6].setScale(0.3, 0.3);
+     arrayOfObjectSprite[6].setPosition(objStop, 500);
+
+     // Randomly spawn first object and set position
      int randBoulder = rand() % numBoulder;
      int randBoulderSpawn = floorWidth + 700 + rand() % 1000;
-     arrayOfBoulderObjectsSprite[randBoulder].setPosition(randBoulderSpawn, 500);
+
+     if (randBoulder >= 0 && randBoulder < 2)
+          arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn, 500);            // boulder
+
+     else if (randBoulder >= 2 && randBoulder < 4)
+          arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn, 400);            // cactus
+
+     else if (randBoulder >= 4 && randBoulder < 6)
+          arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn, 510);            // tumbleWeed
+
+     else
+          arrayOfObjectSprite[randBoulder].setPosition(randBoulderSpawn + 1000, 470);       // coyote, give him a running start
 
 
 	// Overlap variables
@@ -403,12 +462,12 @@ int main()
 		handleEvent(window);
 
           //draw first
-          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfBoulderObjectsSprite, numBoulder);      
+          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfObjectSprite, numBoulder);      
 
           //update drawings
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
                roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
-               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfBoulderObjectsSprite, boulderSpawnStatus, numBoulder, objStop);
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop);
 	}
 
 	return 0;
