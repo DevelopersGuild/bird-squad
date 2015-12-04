@@ -42,7 +42,7 @@ void handleEvent(sf::RenderWindow& window)
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
      bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic, sf::Music& sanicMusic, sf::Sound& squawkSound, 
      bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, 
-	 sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop, sf::Sprite &heartSprite, sf::Time &time1)
+	 sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop, sf::Sprite &heartSprite, sf::Time &time1, sf::Sound &jumpSound)
 {
 	//game timer
      if (!isoverlap)
@@ -73,16 +73,16 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      if (clock.getElapsedTime() >= powerupSpawnTimer)
      {
           powerupSpawnTimer += sf::seconds(10);                       //time to spawn for every consecutive powerup after the first
-          powerupSpawnStatus = 1;
+          powerupSpawnStatus = true;
      }
 
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 101 <= 33)                                 // 33% chance to spawn
+          if (rand() % 100 <= 33)                                 // 33% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
-               sanicPowerupSprite.setPosition(floorWidth, 300);
+               sanicPowerupSprite.setPosition(floorWidth, 250);
           }
           powerupSpawnStatus = false;
      }
@@ -122,6 +122,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y >= 505)
 	{
 		jumpStatus = true;
+          jumpSound.play();
 	}
 
 	if (jumpStatus && (rrSprite.getPosition().y <= 505))
@@ -313,6 +314,12 @@ int main()
      squawkSound.setBuffer(squawk);
      bool deathStatus = true;
 
+     sf::SoundBuffer jump;
+     jump.loadFromFile(resourcePath() + "assets/jump.wav");
+     sf::Sound jumpSound;
+     jumpSound.setBuffer(jump);
+     jumpSound.setVolume(50);
+
 	// Time
 	sf::Clock clock;
 	//clock.restart().asSeconds();
@@ -494,7 +501,7 @@ int main()
           //update drawings
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
                roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
-			   sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, heartSprite, time1);
+			   sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, heartSprite, time1, jumpSound);
 	}
 
 	return 0;
