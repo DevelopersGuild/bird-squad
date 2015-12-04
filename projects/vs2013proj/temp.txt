@@ -42,7 +42,7 @@ void handleEvent(sf::RenderWindow& window)
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
      bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic, sf::Music& sanicMusic, sf::Sound& squawkSound, 
      bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, 
-	 sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop, sf::Sprite &heartSprite, sf::Time &time1)
+     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop)
 {
 	//game timer
      if (!isoverlap)
@@ -52,8 +52,6 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		ss << setprecision(2) << fixed << static_cast<double>(time1.asSeconds());
 		textTime.setString(ss.str().c_str());
 	}
-
-	
 
      // Return to roadrunner character
      if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus)
@@ -134,17 +132,10 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		jumpStatus = false;
 	}
 
-	if (!jumpStatus && (rrSprite.getPosition().y < 505))		//if jumpStatus is true
+	if (!jumpStatus && (rrSprite.getPosition().y < 505))
 	{
 		rrSprite.move(0, 15);
 	}
-
-	//Sanic move left and right
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && sanicSprite.getPosition().x >= 0)
-		rrSprite.move(-5, 0);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && sanicSprite.getPosition().x <= 800)
-		rrSprite.move(5, 0);
-
 
      // Sanic jump
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && sanicSprite.getPosition().y >= 485)
@@ -234,22 +225,13 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           deathStatus = false;
      }
      
-	//position heart
-	 if (static_cast<int>(clock.getElapsedTime().asSeconds()) % 20 == 0)
-	 {
-		 heartSprite.setPosition(700, 100);
-		 cout << static_cast<int>(clock.getElapsedTime().asSeconds());
-	 }
-	 else
-	 {
-		 heartSprite.move(-10, 0);
-	 }
 }
+
 
 
 void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite, sf::Text &text, 
      sf::Text &textTime, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus, 
-	 sf::Sprite arrayOfObjectSprite[], int numBoulder, sf::Sprite &heartSprite)
+     sf::Sprite arrayOfObjectSprite[], int numBoulder)
 {
 	window.clear();
 
@@ -260,7 +242,6 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
 	}
 	else
 	{
-		window.draw(heartSprite);
 		window.draw(floor[0]);
 		window.draw(floor[1]);
           window.draw(road[0]);
@@ -315,7 +296,6 @@ int main()
 
 	// Time
 	sf::Clock clock;
-	//clock.restart().asSeconds();
 	sf::Time time1 = clock.getElapsedTime();
 	sf::Time total;
 
@@ -346,7 +326,7 @@ int main()
 	text.setColor(sf::Color::Blue);
 	text.setPosition(200, 200);
 
-	//roadrunner Sprite and properties
+	//roadrunner variables
 	sf::Texture rrTexture;
 	rrTexture.loadFromFile(resourcePath() + "assets/roadrunner.png");
 	sf::Sprite rrSprite(rrTexture);
@@ -354,19 +334,12 @@ int main()
 	bool jumpStatus = false;
 	rrSprite.setPosition(25, pos);
 
-	//Hear Sprite  (for make it rain)
-	sf::Texture heartTexture;
-	heartTexture.loadFromFile(resourcePath() + "assets/heart.png");
-	sf::Sprite heartSprite(heartTexture);
-	
-
 	//floor variables
 	int floorWidth = window.getSize().x;                         // floorWidth is the size of the window
 	int floorSize = 200;
 	int floorHeightPosition = window.getSize().y - floorSize;
      int roadSize = 25;
 
-	 
      // Floor and road objects
 	sf::Texture floorTexture;
      floorTexture.setRepeated(true);
@@ -489,19 +462,13 @@ int main()
 		handleEvent(window);
 
           //draw first
-		draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfObjectSprite, numBoulder, heartSprite);
+          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfObjectSprite, numBoulder);      
 
           //update drawings
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
                roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
-			   sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, heartSprite, time1);
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop);
 	}
 
 	return 0;
 }
-
-/*
-Make it rain:
-a heart sprite will fall from the sky radomly every 30s and when road runner collide with it, 
-dollar bill will fall from the sky
-*/
