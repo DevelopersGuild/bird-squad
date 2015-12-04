@@ -18,8 +18,6 @@
 
 
 using namespace std;
-enum GAME_STATE { DURING_GAME, END_GAME };
-
 void reset(sf::Sprite&)
 {
 
@@ -263,15 +261,15 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
 void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite, sf::Text &text, 
      sf::Text &textTime, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus, 
-	 sf::Sprite arrayOfObjectSprite[], int numBoulder, sf::Sprite &heartSprite, sf::Sprite &pitchforkSprite )
+	 sf::Sprite arrayOfObjectSprite[], int numBoulder, sf::Sprite &heartSprite, sf::Sprite &pitchforkSprite)
 {
 	window.clear();
 
 	if (isoverlap)
 	{
 		window.draw(text);
-		window.draw(textTime);
-		
+		window.draw(textTime);	
+
 	}
 	else
 	{
@@ -518,8 +516,7 @@ int main()
 	while (window.isOpen())
 	{
 		handleEvent(window);
-
-        
+		
 			//draw first
 			draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfObjectSprite, numBoulder, heartSprite,
 				pitchforkSprite);
@@ -527,11 +524,11 @@ int main()
 			//update drawings
 			update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime,
 				roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed,
-				sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, heartSprite, time1, jumpSound, 
+				sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, heartSprite, time1, jumpSound,
 				pitchforkSprite);
+
 		
-	
-	}	//end of while (window.isOpen())
+		}	//end of while (window.isOpen())
 
 	return 0;
 }
