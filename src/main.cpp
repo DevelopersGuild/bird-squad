@@ -70,16 +70,16 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      if (clock.getElapsedTime() >= powerupSpawnTimer)
      {
           powerupSpawnTimer += sf::seconds(10);                       //time to spawn for every consecutive powerup after the first
-          powerupSpawnStatus = 1;
+          powerupSpawnStatus = true;
      }
 
      // Powerup spawn chance
      if (powerupSpawnStatus)
      {
-          if (rand() % 101 <= 33)                                 // 33% chance to spawn
+          if (rand() % 100 <= 33)                                 // 33% chance to spawn
           {
                sanicPowerupSprite.setScale(0.05, 0.05);
-               sanicPowerupSprite.setPosition(floorWidth, 300);
+               sanicPowerupSprite.setPosition(floorWidth, 250);
           }
           powerupSpawnStatus = false;
      }
