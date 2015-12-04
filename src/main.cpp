@@ -41,7 +41,7 @@ void handleEvent(sf::RenderWindow& window)
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
      bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic, sf::Music& sanicMusic, sf::Sound& squawkSound, 
      bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, 
-     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop)
+     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop, sf::Sound& jumpSound)
 {
 	//game timer
      if (!isoverlap)
@@ -119,6 +119,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && rrSprite.getPosition().y >= 505)
 	{
 		jumpStatus = true;
+          jumpSound.play();
 	}
 
 	if (jumpStatus && (rrSprite.getPosition().y <= 505))
@@ -294,6 +295,12 @@ int main()
      squawkSound.setBuffer(squawk);
      bool deathStatus = true;
 
+     sf::SoundBuffer jump;
+     jump.loadFromFile(resourcePath() + "assets/jump.wav");
+     sf::Sound jumpSound;
+     jumpSound.setBuffer(jump);
+     jumpSound.setVolume(50);
+
 	// Time
 	sf::Clock clock;
 	sf::Time time1 = clock.getElapsedTime();
@@ -467,7 +474,7 @@ int main()
           //update drawings
           update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
                roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
-               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop);
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, jumpSound);
 	}
 
 	return 0;
