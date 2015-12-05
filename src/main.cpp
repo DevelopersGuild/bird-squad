@@ -1,3 +1,9 @@
+/******************************************************************
+RoadRunner Game:
+
+Created By: Thomas Tran, Vinh Tran, Lam Nguyen, Tony Liu, Anh Pham
+******************************************************************/
+
 #include <SFML/Graphics.hpp>
 #include "ResourcePath.h"
 #include <iostream>
@@ -16,8 +22,8 @@
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Audio/Sound.hpp>
 
-
 using namespace std;
+
 void reset(sf::Sprite&)
 {
 
@@ -38,12 +44,10 @@ void handleEvent(sf::RenderWindow& window)
 	}
 }
 
-
 void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidth, int floorHeightPosition, sf::Sprite& rrSprite, double &pos, bool &jumpStatus,
      bool& isoverlap, std::stringstream &ss, sf::Clock &clock, sf::Text &textTime, sf::Music& roadrunnerMusic, sf::Music& sanicMusic, sf::Sound& squawkSound, 
      bool& deathStatus, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool& sanicPowerupStatus, int& globalSpeed, sf::Time& sanicTime, bool& powerupSpawnStatus, 
-     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numBoulder, int objStop, sf::Sprite &heartSprite, sf::Time &time1, 
-	 sf::Sound &jumpSound, sf::Sprite &pitchforkSprite, sf::RectangleShape backgroundbox[])
+     sf::Time& powerupSpawnTimer, sf::Sprite arrayOfObjectSprite[], bool& boulderSpawnStatus, int numObject, int objStop, sf::Sound& jumpSound, sf::RectangleShape backgroundbox[])
 {
 	//game timer
      if (!isoverlap)
@@ -53,8 +57,6 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		ss << setprecision(2) << fixed << static_cast<double>(time1.asSeconds());
 		textTime.setString(ss.str().c_str());
 	}
-
-	
 
      // Return to roadrunner character
      if (clock.getElapsedTime() >= sanicTime && sanicPowerupStatus)
@@ -68,7 +70,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      if (sanicPowerupStatus && (clock.getElapsedTime() <= sanicTime - sf::seconds(1)))         //sanic run speed
           globalSpeed = 100;
      else
-          globalSpeed = 20;                                                                    //roadrunner run speed
+          globalSpeed = 15;                                                                    //roadrunner run speed
 
      // Powerup spawner, checks every 10 seconds
      if (clock.getElapsedTime() >= powerupSpawnTimer)
@@ -154,17 +156,10 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 		jumpStatus = false;
 	}
 
-	if (!jumpStatus && (rrSprite.getPosition().y < 505))		//if jumpStatus is true
+	if (!jumpStatus && (rrSprite.getPosition().y < 505))
 	{
 		rrSprite.move(0, 15);
 	}
-
-	//Sanic move left and right
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && sanicSprite.getPosition().x >= 0)
-		rrSprite.move(-5, 0);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && sanicSprite.getPosition().x <= 800)
-		rrSprite.move(5, 0);
-
 
      // Sanic jump
      if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && sanicSprite.getPosition().y >= 485)
@@ -188,7 +183,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      }
 
      // Movement of objects
-     for (int i = 0; i < numBoulder-1; i++)
+     for (int i = 0; i < numObject-1; i++)
      {
           if (arrayOfObjectSprite[i].getPosition().x >= objStop)
                arrayOfObjectSprite[i].move(-globalSpeed, 0);
@@ -198,7 +193,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           arrayOfObjectSprite[6].move(-globalSpeed * 1.3, 0);             // Coyote run speed
 
      // First checkpoint: spawns one object
-     for (int i = 0; i < numBoulder; i++)
+     for (int i = 0; i < numObject; i++)
      {
           if ((arrayOfObjectSprite[i].getPosition().x >= 800 && arrayOfObjectSprite[i].getPosition().x <= 1000) && boulderSpawnStatus)
           {
@@ -208,7 +203,7 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
 
                while (reroll)
                {
-                    int randBoulder = rand() % numBoulder;
+                    int randBoulder = rand() % numObject;
 
                     if (arrayOfObjectSprite[randBoulder].getPosition().x <= objStop)
                     {
@@ -231,14 +226,14 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
      }
 
      // Second Checkpoint: renable spawning of objects
-     for (int i = 0; i < numBoulder; i++)
+     for (int i = 0; i < numObject; i++)
      {
           if (arrayOfObjectSprite[i].getPosition().x >= 600 && arrayOfObjectSprite[i].getPosition().x < 800)
                boulderSpawnStatus = true;
      }
 
      // Check collision for all objects in array
-     for (int i = 0; i < numBoulder; i++)
+     for (int i = 0; i < numObject; i++)
      {
           if (overlap(rrSprite, arrayOfObjectSprite[i]) && !sanicPowerupStatus)
           {
@@ -252,35 +247,16 @@ void update(sf::RectangleShape floor[], sf::RectangleShape road[], int floorWidt
           roadrunnerMusic.pause();
           squawkSound.play();
           deathStatus = false;
+
      }
      
-	 
-	//position PITCHFORK 
-	
-	 
-	 if (static_cast<int>(clock.getElapsedTime().asSeconds()) % 10 == 0)
-	 {
-		 pitchforkSprite.setPosition(1200, rand() % 600 + 100);
-	 }
-
-	 else
-	 {
-		 pitchforkSprite.move(-20, 0);
-	 }
-
-	 //if rrSprite collide with heart, dieded
-	 if (overlap(rrSprite, pitchforkSprite))
-	 {
-		 deathStatus = false;
-		 isoverlap = true;
-	 }
-
 }
+
 
 
 void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleShape road[], sf::Sprite& rrSprite, sf::Text &text, 
      sf::Text &textTime, bool isoverlap, sf::Sprite& sanicSprite, sf::Sprite& sanicPowerupSprite, bool sanicPowerupStatus, 
-	 sf::Sprite arrayOfObjectSprite[], int numBoulder, sf::Sprite &heartSprite, sf::Sprite &pitchforkSprite, sf::RectangleShape backgroundbox[])
+     sf::Sprite arrayOfObjectSprite[], int numObject, sf::RectangleShape backgroundbox[])
 {
 	window.clear();
    
@@ -289,7 +265,12 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
           window.draw(backgroundbox[i]);
      }
 
-     for (int i = 0; i < numBoulder; i++)
+     window.draw(floor[0]);
+     window.draw(floor[1]);
+     window.draw(road[0]);
+     window.draw(road[1]);
+
+     for (int i = 0; i < numObject; i++)
      {
           window.draw(arrayOfObjectSprite[i]);
      }
@@ -298,18 +279,9 @@ void draw(sf::RenderWindow& window, sf::RectangleShape floor[], sf::RectangleSha
 	{
 		window.draw(text);
 		window.draw(textTime);
-          window.draw(floor[0]);
-          window.draw(floor[1]);
-          window.draw(road[0]);
-          window.draw(road[1]);
 	}
 	else
 	{
-		window.draw(pitchforkSprite);
-		window.draw(floor[0]);
-		window.draw(floor[1]);
-          window.draw(road[0]);
-          window.draw(road[1]);
           window.draw(sanicPowerupSprite);
       
           if (sanicPowerupStatus)
@@ -326,8 +298,6 @@ int main()
 {
 	sf::RenderWindow window(sf::VideoMode(1000, 800), "RoadRunner");
 	window.setVerticalSyncEnabled(true);
-
-	
 
      //IMPORTANT FOR GAME TO BE CONSISTENT, use this whenever possible
      int globalSpeed = 15;
@@ -364,7 +334,6 @@ int main()
 
 	// Time
 	sf::Clock clock;
-	//clock.restart().asSeconds();
 	sf::Time time1 = clock.getElapsedTime();
 	sf::Time total;
 
@@ -382,7 +351,7 @@ int main()
 	textTime.setCharacterSize(100);
 	textTime.setStyle(sf::Text::Bold);
 	textTime.setColor(sf::Color::Blue);
-	textTime.setPosition(10, 10);
+	textTime.setPosition(0, 0);
 
 	// Load and set game over font
 	sf::Font font;
@@ -395,7 +364,7 @@ int main()
 	text.setColor(sf::Color::Red);
 	text.setPosition(150, 300);
 
-	//roadrunner Sprite and properties
+	//roadrunner variables
 	sf::Texture rrTexture;
 	rrTexture.loadFromFile(resourcePath() + "assets/roadrunner.png");
 	sf::Sprite rrSprite(rrTexture);
@@ -403,27 +372,12 @@ int main()
 	bool jumpStatus = false;
 	rrSprite.setPosition(25, pos);
 
-	//Pitchfork sprite 
-	sf::Texture pitchforkTexture;
-	pitchforkTexture.loadFromFile(resourcePath() + "assets/pitchfork.png");
-	sf::Sprite pitchforkSprite(pitchforkTexture);
-	pitchforkSprite.rotate(235);
-	pitchforkSprite.scale(0.5, 0.5);
-	
-
-	//Heart Sprite  (for make it rain)
-	sf::Texture heartTexture;
-	heartTexture.loadFromFile(resourcePath() + "assets/heart.png");
-	sf::Sprite heartSprite(heartTexture);
-	
-
 	//floor variables
 	int floorWidth = window.getSize().x;                         // floorWidth is the size of the window
 	int floorSize = 200;
 	int floorHeightPosition = window.getSize().y - floorSize;
      int roadSize = 25;
 
-	 
      // Floor and road objects
 	sf::Texture floorTexture;
      floorTexture.setRepeated(true);
@@ -449,7 +403,7 @@ int main()
 
      // the array of objects
      sf::Sprite arrayOfObjectSprite[7];
-     int numBoulder = 7;
+     int numObject = 7;
 
 	// boulder object
 	sf::Texture boulderTexture;
@@ -497,7 +451,7 @@ int main()
      arrayOfObjectSprite[6].setPosition(objStop, 500);
 
      // Randomly spawn first object and set position
-     int randBoulder = rand() % numBoulder;
+     int randBoulder = rand() % numObject;
      int randBoulderSpawn = floorWidth + 700 + rand() % 1000;
 
      if (randBoulder >= 0 && randBoulder < 2)
@@ -558,24 +512,15 @@ int main()
 	while (window.isOpen())
 	{
 		handleEvent(window);
-		
-		//draw first
-		draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfObjectSprite, numBoulder, heartSprite,
-			pitchforkSprite, backgroundbox);
-		//update drawings
-		update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime,
-				roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed,
-				sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numBoulder, objStop, heartSprite, time1, jumpSound,
-				pitchforkSprite, backgroundbox);
-		}	//end of while (window.isOpen())
+
+          //draw first
+          draw(window, floor, road, rrSprite, text, textTime, isoverlap, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, arrayOfObjectSprite, numObject, backgroundbox);      
+
+          //update drawings
+          update(floor, road, floorWidth, floorHeightPosition, rrSprite, pos, jumpStatus, isoverlap, ss, clock, textTime, 
+               roadrunnerMusic, sanicMusic, squawkSound, deathStatus, sanicSprite, sanicPowerupSprite, sanicPowerupStatus, globalSpeed, 
+               sanicTime, powerupSpawnStatus, powerupSpawnTimer, arrayOfObjectSprite, boulderSpawnStatus, numObject, objStop, jumpSound, backgroundbox);
+	}
 
 	return 0;
 }
-
-/*
-Make it rain:
-a heart sprite will fall from the sky radomly every 30s and when road runner collide with it, 
-dollar bill will fall from the sky
-*/
-
-//heart and make it rain is not done
